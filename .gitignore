@@ -1,0 +1,23 @@
+# Build outputs
+MDK-ARM/Quadruped_Robot/
+*.o
+*.d
+*.crf
+*.axf
+*.hex
+*.map
+*.lst
+*.lnp
+*.dep
+*.htm
+*.iex
+
+# Python/cache
+__pycache__/
+*.pyc
+
+# Editor/temporary files
+.vs/
+*.bak
+*.tmp
+*.log
