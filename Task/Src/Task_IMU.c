@@ -6,7 +6,6 @@
 #include "Inverse_K.h"
 
 extern volatile uint8_t bluetooth_connected;
-extern float distance;
 
 // 速度相关变量
 static float calculate_speed(void)
@@ -64,7 +63,7 @@ void Task_IMU_Start(void *parameters)
 			char buf[17];
 			
 			// 显示俯仰角和距离（合并到第一行），用空格填充到16字符
-			sprintf(buf, "P:%.0f D:%.0f     ", angle[1], distance);
+			sprintf(buf, "P:%.0f V:UART4   ", angle[1]);
 			buf[16] = '\0';
 			OLED_ShowString(1, 1, buf);
 			
