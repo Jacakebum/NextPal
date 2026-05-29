@@ -6,8 +6,7 @@
 #include "Inverse_K.h"
 
 extern volatile uint8_t bluetooth_connected;
-extern volatile uint8_t last_vision_cmd[3];
-extern volatile uint8_t last_voice_cmd[3];
+extern volatile uint8_t last_rx_cmd[3];
 
 // 速度相关变量
 static float calculate_speed(void)
@@ -65,7 +64,7 @@ void Task_IMU_Start(void *parameters)
 			char buf[17];
 			
 			// 显示俯仰角和距离（合并到第一行），用空格填充到16字符
-			sprintf(buf, "Cam:%s Voc:%s   ", (char*)last_vision_cmd, (char*)last_voice_cmd);
+			sprintf(buf, "P:%.0f          ", angle[1]);
 			buf[16] = '\0';
 			OLED_ShowString(1, 1, buf);
 			
@@ -78,12 +77,8 @@ void Task_IMU_Start(void *parameters)
 			
 			// 第3行：显示蓝牙状态、数据和参数，用空格填充
 			const char* bt_str = GetBluetoothStatusString(bluetooth_connected);
-			extern uint8_t data[20];
 			// 显示收到的2个字符（直接显示ASCII字符）
-			char data_char[3] = {0};
-			data_char[0] = (data[0] >= 32 && data[0] <= 126) ? data[0] : '?';  // 可打印字符
-			data_char[1] = (data[1] >= 32 && data[1] <= 126) ? data[1] : '?';  // 可打印字符
-			sprintf(buf, "BT:%s D:%s S:%.0f   ", bt_str, data_char, S);
+			sprintf(buf, "BT:%s D:%s S:%.0f   ", bt_str, (char*)last_rx_cmd, S);
 			buf[16] = '\0';
 			OLED_ShowString(3, 1, buf);
 			

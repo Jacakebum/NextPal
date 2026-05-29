@@ -64,8 +64,7 @@ static uint8_t maixcam_cmd_index = 0;
 static uint8_t voice_cmd[2];
 static uint8_t voice_cmd_index = 0;
 uint8_t data3[10];
-volatile uint8_t last_vision_cmd[3] = "--";
-volatile uint8_t last_voice_cmd[3] = "--";
+volatile uint8_t last_rx_cmd[3] = "--";
 
 volatile uint8_t bluetooth_connected = 0;
 volatile uint8_t bluetooth_ack_pending = 0;
@@ -223,6 +222,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			memcpy(*data_copy, data, 2);
 			osMailPut(myMail01Handle, data_copy);
 		}
+		last_rx_cmd[0] = data[0];
+		last_rx_cmd[1] = data[1];
+		last_rx_cmd[2] = '\0';
 		
 		HAL_UART_Receive_IT(&huart2,data,2);
 	}
@@ -242,9 +244,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					memcpy(*data_copy, maixcam_cmd, 2);
 					osMailPut(myMail02Handle, data_copy);
 				}
-				last_vision_cmd[0] = maixcam_cmd[0];
-				last_vision_cmd[1] = maixcam_cmd[1];
-				last_vision_cmd[2] = '\0';
+				last_rx_cmd[0] = maixcam_cmd[0];
+				last_rx_cmd[1] = maixcam_cmd[1];
+				last_rx_cmd[2] = '\0';
 				maixcam_cmd_index = 0;
 			}
 		}
@@ -289,9 +291,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					memcpy(*data_copy, voice_cmd, 2);
 					osMailPut(myMail02Handle, data_copy);
 				}
-				last_voice_cmd[0] = voice_cmd[0];
-				last_voice_cmd[1] = voice_cmd[1];
-				last_voice_cmd[2] = '\0';
+				last_rx_cmd[0] = voice_cmd[0];
+				last_rx_cmd[1] = voice_cmd[1];
+				last_rx_cmd[2] = '\0';
 				voice_cmd_index = 0;
 			}
 		}
