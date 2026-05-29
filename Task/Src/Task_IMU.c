@@ -6,6 +6,8 @@
 #include "Inverse_K.h"
 
 extern volatile uint8_t bluetooth_connected;
+extern volatile uint8_t last_vision_cmd[3];
+extern volatile uint8_t last_voice_cmd[3];
 
 // 速度相关变量
 static float calculate_speed(void)
@@ -63,7 +65,7 @@ void Task_IMU_Start(void *parameters)
 			char buf[17];
 			
 			// 显示俯仰角和距离（合并到第一行），用空格填充到16字符
-			sprintf(buf, "P:%.0f V:UART4   ", angle[1]);
+			sprintf(buf, "Cam:%s Voc:%s   ", (char*)last_vision_cmd, (char*)last_voice_cmd);
 			buf[16] = '\0';
 			OLED_ShowString(1, 1, buf);
 			
