@@ -76,11 +76,26 @@ volatile uint8_t bluetooth_ack_pending = 0;
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
+static void UpdateLastRxCmdByte(uint8_t byte);
+static void UpdateLastRxCmdPair(uint8_t first, uint8_t second);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void UpdateLastRxCmdByte(uint8_t byte)
+{
+	last_rx_cmd[0] = (byte >= 32 && byte <= 126) ? byte : '?';
+	last_rx_cmd[1] = '\0';
+	last_rx_cmd[2] = '\0';
+}
+
+static void UpdateLastRxCmdPair(uint8_t first, uint8_t second)
+{
+	last_rx_cmd[0] = (first >= 32 && first <= 126) ? first : '?';
+	last_rx_cmd[1] = (second >= 32 && second <= 126) ? second : '?';
+	last_rx_cmd[2] = '\0';
+}
 
 #ifdef __GNUC__
 /* With GCC, small printf (option LD Linker->Libraries->Small printf
@@ -222,9 +237,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			memcpy(*data_copy, data, 2);
 			osMailPut(myMail01Handle, data_copy);
 		}
-		last_rx_cmd[0] = data[0];
-		last_rx_cmd[1] = data[1];
-		last_rx_cmd[2] = '\0';
+		UpdateLastRxCmdPair(data[0], data[1]);
 		
 		HAL_UART_Receive_IT(&huart2,data,2);
 	}
@@ -232,6 +245,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	if(huart->Instance == USART3)
 	{
 		uint8_t rx_byte = data2[0];
+		UpdateLastRxCmdByte(rx_byte);
 		
 		if(rx_byte >= '0' && rx_byte <= '9')
 		{
@@ -244,9 +258,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					memcpy(*data_copy, maixcam_cmd, 2);
 					osMailPut(myMail02Handle, data_copy);
 				}
-				last_rx_cmd[0] = maixcam_cmd[0];
-				last_rx_cmd[1] = maixcam_cmd[1];
-				last_rx_cmd[2] = '\0';
+				UpdateLastRxCmdPair(maixcam_cmd[0], maixcam_cmd[1]);
 				maixcam_cmd_index = 0;
 			}
 		}
@@ -279,6 +291,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	if(huart->Instance == UART4)
 	{
 		uint8_t rx_byte = data3[0];
+		UpdateLastRxCmdByte(rx_byte);
 
 		if(rx_byte >= '0' && rx_byte <= '9')
 		{
@@ -291,9 +304,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					memcpy(*data_copy, voice_cmd, 2);
 					osMailPut(myMail02Handle, data_copy);
 				}
-				last_rx_cmd[0] = voice_cmd[0];
-				last_rx_cmd[1] = voice_cmd[1];
-				last_rx_cmd[2] = '\0';
+				UpdateLastRxCmdPair(voice_cmd[0], voice_cmd[1]);
 				voice_cmd_index = 0;
 			}
 		}
