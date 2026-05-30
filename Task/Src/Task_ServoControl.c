@@ -29,7 +29,7 @@
 
 #define FL_HIP_Value    150
 #define FL_THIGH_Value  115
-#define FL_SHANK_Value  120
+#define FL_SHANK_Value  120-20
 #define FR_HIP_Value    110
 #define FR_THIGH_Value  123
 #define FR_SHANK_Value  140
@@ -38,7 +38,7 @@
 #define BL_SHANK_Value  180
 #define BR_HIP_Value    195
 #define BR_THIGH_Value  155
-#define BR_SHANK_Value  111
+#define BR_SHANK_Value  111-60
 
 /*单腿关节转角*/
 extern floatTheta Leg_angle[4];

@@ -56,20 +56,17 @@ extern osMailQId myMail02Handle;
 uint8_t data2[20];
 //extern osMailQId myMail03Handle;	
 //uint8_t data3[20];
-/*******USART3��������ز���*******/
+/*******USART3 MaixCam相关变量*******/
 static uint8_t maixcam_cmd[2];
 static uint8_t maixcam_cmd_index = 0;
 
-/*******UART4������ģ����ز���*******/
-uint8_t Re_buf2[10],counter2=0;
-static unsigned char Temp2[10];
+/*******UART4语音模块相关变量*******/
+static uint8_t voice_cmd[2];
+static uint8_t voice_cmd_index = 0;
 uint8_t data3[10];
 
 volatile uint8_t bluetooth_connected = 0;
 volatile uint8_t bluetooth_ack_pending = 0;
-
-// US100超声波测量完成标志
-volatile uint8_t us100_measurement_ready = 1;
 
 /* USER CODE END PV */
 
@@ -273,15 +270,25 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	
 	if(huart->Instance == UART4)
 	{
-		Temp2[counter2]=data3[0];
-		counter2++; 
+		uint8_t rx_byte = data3[0];
 		
-		// US100串口模式返回2字节数据（高字节+低字节，单位mm）
-		if(counter2>=2)
-		{ 
-			memcpy(Re_buf2,Temp2,2);   //只复制2字节
-			counter2=0;                //重新赋值，准备下一帧数据的接收
-			us100_measurement_ready = 1;  // 测量完成，可以触发下一次
+		if(rx_byte >= '0' && rx_byte <= '9')
+		{
+			voice_cmd[voice_cmd_index++] = rx_byte;
+			if(voice_cmd_index >= 2)
+			{
+				uint8_t (*data_copy)[2] = osMailAlloc(myMail02Handle, 0);
+				if(data_copy != NULL)
+				{
+					memcpy(*data_copy, voice_cmd, 2);
+					osMailPut(myMail02Handle, data_copy);
+				}
+				voice_cmd_index = 0;
+			}
+		}
+		else
+		{
+			voice_cmd_index = 0;
 		}
 		HAL_UART_Receive_IT(&huart4,data3,1);
 	}	

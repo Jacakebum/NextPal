@@ -23,13 +23,11 @@ extern uint8_t data[20];
 extern uint8_t data2[20];
 //extern osMailQId myMail03Handle;
 
-extern uint8_t Re_buf2[10];
-uint8_t flag=0;
 extern uint8_t data3[10];
+uint8_t flag=0;
 float distance=0;
 extern volatile uint8_t bluetooth_connected;
 extern volatile uint8_t bluetooth_ack_pending;
-extern volatile uint8_t us100_measurement_ready;
 
 // 蓝牙连接超时计数器（非static，允许其他文件访问）
 uint16_t bluetooth_timeout = 0;
@@ -60,14 +58,7 @@ void Task_StateMachine_Start(void *parameters)
 	  HAL_UART_Receive_IT(&huart3,data2,1);
 	  HAL_UART_Receive_IT(&huart4,data3,1);
 	  
-	  // 初始化US100，发送触发指令启动测距
-	  uint8_t trigger_cmd = 0x55;
-	  HAL_UART_Transmit(&huart4, &trigger_cmd, 1, 100);
-	  
     xLastWakeUpTime = xTaskGetTickCount();
-    
-    // 触发计数器，用于持续触发US100
-    static uint8_t trigger_count = 0;
     
     // 蓝牙心跳包计数器
     static uint16_t heartbeat_count = 0;
@@ -125,15 +116,7 @@ void Task_StateMachine_Start(void *parameters)
 				HAL_UART_Transmit(&huart2, (uint8_t*)heartbeat_msg, 4, 100);
 				heartbeat_count = 0;
 			}
-			
-			// 每100ms触发一次US100测距（提高更新速度）
-			trigger_count++;
-			if(trigger_count >= 10 && us100_measurement_ready)
-			{
-				us100_measurement_ready = 0;  // 标记测量开始
-				HAL_UART_Transmit(&huart4, &trigger_cmd, 1, 100);
-				trigger_count = 0;
-			}
+
 			
 			vTaskDelayUntil(&xLastWakeUpTime, 10);      /*10ms更新一次*/
 		}
@@ -341,23 +324,5 @@ uint8_t GaitMode_Update(void)
 
 uint8_t Avoid_Obstacle(void)
 {	
-	// US100串口模式：返回2字节数据（高字节+低字节，单位mm）
-	// 距离 = (高字节 * 256 + 低字节) / 10 (转换为cm)
-	uint16_t distance_mm = (Re_buf2[0] << 8) | Re_buf2[1];
-	if(distance_mm > 0 && distance_mm <= 4500)  // 有效范围0-450cm
-	{
-		distance = distance_mm / 10.0f;  // mm转换为cm，保留小数
-	}
-	
-	// 避障逻辑：只在Trot模式且flag=1时生效
-	if(GaitMode==GaitMode_Trot && flag==1)
-	{
-		if(distance<30&&distance>20)
-			Mainstate = MainState_Step;
-		else if(distance>0&&distance<=20)
-			Mainstate = MainState_Backward;
-		else if(distance>=30)
-			Mainstate = MainState_Forward;
-	}	
 	return 1;		
 }
